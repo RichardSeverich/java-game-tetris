@@ -1,0 +1,46 @@
+image: kaiwinter/docker-java8-maven
+
+stages:
+  - check
+  - build
+  - test
+  - deploy
+
+before_script:
+  - wget http://services.gradle.org/distributions/gradle-3.5-bin.zip
+  - apt-get install unzip
+  - unzip gradle-3.5-bin.zip
+  - export GRADLE_HOME=$PWD/gradle-3.5
+  - export PATH=$GRADLE_HOME/bin:$PATH
+
+check:
+  stage: check
+  script:
+    - gradle check
+
+build:
+  stage: build
+  script:
+    - gradle build
+
+test:
+  stage: test
+  script:
+    - gradle test
+    - gradle cobertura
+
+deploy:
+  stage: deploy
+  script:
+    - gradle awesomeFunJar
+    - gradle copyJar
+    - gradle copyResources
+  artifacts:
+    paths:
+      - build/libs/tetris-app-1.0-SNAPSHOT-standalone.jar
+      - build/libs/resources/*.jpg
+      - build/libs/resources/*.mp3
+    expire_in: 1 week
+
+after_script:
+  - echo "End CI"

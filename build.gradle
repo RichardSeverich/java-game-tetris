@@ -1,0 +1,130 @@
+buildscript {
+    repositories {
+        jcenter()
+        mavenLocal()
+    }
+    dependencies {
+        classpath "net.saliman:gradle-cobertura-plugin:2.5.0"
+        classpath 'com.github.rholder:gradle-one-jar:1.0.4'
+    }
+}
+
+allprojects {
+    group 'org.fundacionjala.at04.teamtetris'
+    version '1.0-SNAPSHOT'
+
+    apply plugin: 'gradle-one-jar'
+
+    task awesomeFunJar(type: OneJar) {
+        mainClass = 'org.fundacionjala.at04.teamtetris.app.TetrisMain'
+    }
+
+    artifacts {
+        archives awesomeFunJar
+    }
+
+    task copyJar(type: Copy) {
+        from 'tetris-app/build/libs'
+        into 'build/libs'
+        include '*-standalone.jar'
+    }
+
+    task copyResources(type: Copy) {
+        from 'resources'
+        into 'build/libs/resources'
+        include '*.*'
+        exclude '.gitignore'
+    }
+}
+
+subprojects {
+    repositories {
+        jcenter()
+    }
+
+    apply plugin: 'java'
+    apply plugin: 'idea'
+    apply plugin: 'checkstyle'
+    apply plugin: 'pmd'
+    apply plugin: 'findbugs'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    dependencies {
+        compile group: 'junit', name: 'junit', version: '4.12'
+        testCompile "junit:junit:4.12"
+        testRuntime "org.slf4j:slf4j-api:1.7.10"
+    }
+
+    checkstyle {
+        toolVersion = '7.7'
+        configFile = file("${rootProject.rootDir}/config/checkstyle/google_checks.xml")
+    }
+
+    findbugs {
+        toolVersion = "3.0.1"
+    }
+
+    tasks.withType(FindBugs) {
+        reports {
+            xml.enabled = false
+            html.enabled = true
+        }
+    }
+
+    pmd {
+        toolVersion = '5.6.1'
+    }
+
+    tasks.withType(Pmd) {
+        reports {
+            xml.enabled = false
+            html.enabled = true
+        }
+    }
+
+    test {
+        testLogging {
+            events "PASSED", "STARTED", "FAILED", "SKIPPED"
+        }
+    }
+}
+
+project(':tetris-models') {
+
+    apply plugin: 'net.saliman.cobertura'
+
+    cobertura {
+        coverageFormats = ['html', 'xml']
+        coverageIgnoreTrivial = true
+        coverageIgnores = ['org.slf4j.Logger.*']
+        coverageReportDir = new File("$buildDir/reports/cobertura")
+        coverageCheckBranchRate = 80
+        coverageCheckLineRate = 80
+        coverageCheckTotalBranchRate = 80
+        coverageCheckTotalLineRate = 80
+        coverageIgnoreTrivial = true
+    }
+
+    test.finalizedBy(project.tasks.cobertura)
+}
+
+project(':tetris-core') {
+
+    apply plugin: 'net.saliman.cobertura'
+
+    cobertura {
+        coverageFormats = ['html', 'xml']
+        coverageIgnoreTrivial = true
+        coverageIgnores = ['org.slf4j.Logger.*']
+        coverageReportDir = new File("$buildDir/reports/cobertura")
+        coverageCheckBranchRate = 80
+        coverageCheckLineRate = 80
+        coverageCheckTotalBranchRate = 80
+        coverageCheckTotalLineRate = 80
+        coverageIgnoreTrivial = true
+    }
+
+    test.finalizedBy(project.tasks.cobertura)
+}
